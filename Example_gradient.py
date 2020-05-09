@@ -17,14 +17,12 @@ number_variables = 4
 index_variables = [11,12,22,44]
 
 #define the container for the fields outputs
-disp=[]
-stress = []
-strain = []
 d_U_D=[]
 
 #open odb file
 odb=['']
 odb[0] = visualization.openOdb('Job-1.odb')
+a = odb[0].steps['Step-1'].frames[-1]
 
 #define the gradient name in the odb file
 gradient_name_total = []
@@ -34,24 +32,15 @@ for int_point in range(number_integration_points):
 		gradient_name = 'd_U_D' + '_' +str(int_point) + '_' + str(tmp)
 		gradient_name_total.append(gradient_name)
 
-#first way to access odb
+		
+#access gradient
 start = timeit.default_timer()
-a = odb[0].steps['Step-1'].frames[-1]
-for obs_opoint in observation_points:
-	for int_point in range(number_integration_points):
-		for index in range(number_variables):
-			tmp = index_variables[index]
-			gradient_name = 'd_U_D' + '_' +str(int_point) + '_' + str(tmp)
-			d_U_D_tmp = a.fieldOutputs[gradient_name].getSubset(position=NODAL).values[obs_opoint].data[:]
-			d_U_D.append(d_U_D_tmp)
 
-stop = timeit.default_timer()
-time_count = stop - start
-print(time_count)
-
-#second way to access odb
-start = timeit.default_timer()
 d_U_D_tmp = [a.fieldOutputs[gradient_name].getSubset(position=NODAL).values for gradient_name in gradient_name_total]
 d_U_D = [d_U_D_tmp[field][node].data for node in observation_points for field in range(number_integration_points*number_variables)]
 d_U_D = np.reshape(d_U_D, (observation_size,-1, number_U_direction))
+
+#compute time cost
+stop = timeit.default_timer()
+time_count = stop - start
 print(time_count)
